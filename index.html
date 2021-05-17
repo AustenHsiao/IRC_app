@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>IRC: CS594</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+    <div id="displayArea">
+        <div id=usernameDisplay></div>
+        <div id=chatroomDisplay></div>
+    </div>
+
+    <form id='signin'>
+        <label for='username'>Username:</label>
+        <input type='text' id='ign' name='ign' placeholder='Username' required></input>
+        <br>
+        <label for='chatroom'>Enter Chatroom:</label>
+        <input type='text' id='chatroom' name='chatroom' placeholder='Enter chatroom' required></input>
+        <br>
+        <button onclick="fillOut()">Change</button>
+    </form>
+
+    <ul id='openChatrooms'></ul>
+
+    <div id="chatbox" style="width:40vw;height:20vw;;resize:none;border-style:solid;position:relative;bottom:0;">
+        <form style="position:relative;" id='chatform'>
+            <label for='text'>Enter Message:</label>
+            <input type='text' id='chatinput' onsubmit=></input>
+            <button>Send</button>
+        </form>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io()
+        const chat = document.getElementById('chatform');
+        const unameForm = document.getElementById('signin')
+
+        function fillOut() {
+            if (!document.getElementById('ign').value || !document.getElementById('chatroom').value) {
+                alert("Username and chatroom cannot be empty");
+                return;
+            }
+            document.getElementById("usernameDisplay").innerText = "Current username: " + document.getElementById('ign').value;
+            document.getElementById("chatroomDisplay").innerText = "Current chatroom: " + document.getElementById('chatroom').value;
+        }
+
+        chat.addEventListener('submit', event => {
+            event.preventDefault()
+        });
+
+        unameForm.addEventListener('submit', event => {
+            event.preventDefault()
+        });
+
+        const Input = document.getElementById("chatinput");
+
+        chat.addEventListener('submit', event => {
+            event.preventDefault()
+            socket.emit('chat', Input.value)
+            Input.value = ''
+        });
+
+
+    </script>
+</body>
+
+</html>
