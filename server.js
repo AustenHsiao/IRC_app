@@ -13,7 +13,13 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
     console.log('a user connected');
+
+    socket.on('sendMsg', (messageObject) => {
+        console.log(messageObject);
+    });
 });
+
+
 
 server.listen(port, () => {
     console.log("Listening on port 8080");

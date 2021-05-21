@@ -17,10 +17,10 @@
         <label for='username'>Username:</label>
         <input type='text' id='ign' name='ign' placeholder='Username' required></input>
         <br>
-        <label for='chatroom'>Enter Chatroom:</label>
+        <label for='chatroom'>Chatroom:</label>
         <input type='text' id='chatroom' name='chatroom' placeholder='Enter chatroom' required></input>
         <br>
-        <button onclick="fillOut()">Change</button>
+        <button type="submit">Set</button>
     </form>
 
     <ul id='openChatrooms'></ul>
@@ -28,40 +28,53 @@
     <div id="chatbox" style="width:40vw;height:20vw;;resize:none;border-style:solid;position:relative;bottom:0;">
         <form style="position:relative;" id='chatform'>
             <label for='text'>Enter Message:</label>
-            <input type='text' id='chatinput' onsubmit=></input>
+            <input type='text' id='chatinput'></input>
             <button>Send</button>
         </form>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        const socket = io()
+        const socket = io();
         const chat = document.getElementById('chatform');
-        const unameForm = document.getElementById('signin')
+        const unameForm = document.getElementById('signin');
+        const input = document.getElementById('chatinput');
+        var uname = null;
+        var rname = null;
 
-        function fillOut() {
-            if (!document.getElementById('ign').value || !document.getElementById('chatroom').value) {
-                alert("Username and chatroom cannot be empty");
-                return;
+        function nonEmpty(){
+            if (!uname || !rname) {
+                alert("Username and chatroom cannot be empty. Please set these values.");
+                return 0;
             }
-            document.getElementById("usernameDisplay").innerText = "Current username: " + document.getElementById('ign').value;
-            document.getElementById("chatroomDisplay").innerText = "Current chatroom: " + document.getElementById('chatroom').value;
+            return 1;
         }
 
-        chat.addEventListener('submit', event => {
-            event.preventDefault()
-        });
-
         unameForm.addEventListener('submit', event => {
-            event.preventDefault()
+            event.preventDefault();
+            uname = document.getElementById('ign').value;
+            rname = document.getElementById('chatroom').value;
+            document.getElementById("usernameDisplay").innerText = "Current username: " + uname;
+            document.getElementById("chatroomDisplay").innerText = "Current chatroom: " + rname;
+            
+            if(nonEmpty() === 0){
+                return;
+            }
+            socket.emit('urChange', {'uname':uname, 'rname':rname});
         });
 
-        const Input = document.getElementById("chatinput");
-
         chat.addEventListener('submit', event => {
+            /*
+                When a user sends a message, the server needs it
+            */
             event.preventDefault()
-            socket.emit('chat', Input.value)
-            Input.value = ''
+            if(nonEmpty() === 0){
+                return 0;
+            }
+
+            var msg = input.value;
+            socket.emit('sendMsg', {'room':rname, 'uname':uname, 'message':msg});
+            input.value = '';
         });
 
 
