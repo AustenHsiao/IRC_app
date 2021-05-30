@@ -9,7 +9,7 @@
 
 <body>
     <div id="displayArea1" style="display:block">
-        <div style="display:inline">Current username:</div>
+        <div style="display:inline">Username:</div>
         <div id=usernameDisplay style="display:inline"></div>
     </div>
     <div id='displayArea2' style="display:block">
@@ -17,17 +17,19 @@
         <div id=chatroomDisplay style="display:inline"></div>
     </div>
 
-    <form id='signin'>
-        <label for='username'>Username:</label>
+    <form id='username'>
         <input type='text' id='ign' name='ign' placeholder='Username' required></input>
-        <br>
-        <label for='chatroom'>Chatroom:</label>
-        <input type='text' id='chatroom' name='chatroom' placeholder='Enter chatroom' required></input>
-        <br>
-        <button type="submit">Set</button>
+        <button type="submit">Set username</button>
     </form>
-
-    <ul id='openChatrooms'></ul>
+    <form id='createroom'>
+        <input type='text' id='create_room' name='create_room' placeholder='Enter chatroom' required></input>
+        <button type="submit">Create</button>
+    </form>
+    <form id='joinroom'>
+        <input type='text' id='join_room' name='join_room' placeholder='Enter chatroom' required></input>
+        <button type="submit">Join</button>
+    </form>
+    
 
     <div id="chatbox" style="width:40vw;height:20vw;;resize:none;border-style:solid;position:relative;bottom:0;">
         <div id='msgdisplay' style="width:100%; height:90%;padding-left: 1vw;"></div>
@@ -37,51 +39,56 @@
             <button>Send</button>
         </form>
     </div>
+    <div id='availablechatrooms'><strong>Open Chat Room(s)</strong><button id='refreshlist'>Refresh</button><ul id='openCR'></ul></div>
+    <div id='usersinroom'><strong>Users(s)</strong><ul id='userList'></ul></div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
         const chat = document.getElementById('chatform');
-        const unameForm = document.getElementById('signin');
+        const username = document.getElementById('username');
+        const createroom = document.getElementById('createroom');
+        const joinroom = document.getElementById('joinroom');
         const input = document.getElementById('chatinput');
+        const chatroomList = document.getElementById("openCR");
+        const userList = document.getElementById("userList");
+        const refreshroom = document.getElementById("refreshlist");
         var uname = null;
         var rname = null;
 
-        function nonEmpty(){
-            if (!uname || !rname) {
-                alert("Username and chatroom cannot be empty. Please set these values.");
-                return 0;
-            }
-            return 1;
-        }
-
-        unameForm.addEventListener('submit', event => {
+        username.addEventListener('submit', event => {
+            /*SET USERNAME*/
             event.preventDefault();
-            uname = document.getElementById('ign').value;
-            rname = document.getElementById('chatroom').value;
-
-            if(nonEmpty() === 0){
-                return;
-            }
-            var oldName = document.getElementById("usernameDisplay").innerText;
-            var oldRoom = document.getElementById("chatroomDisplay").innerText;
-            socket.emit('urChange', {'uname':uname, 'rname':rname, 'oldName': oldName, 'oldRoom': oldRoom});
+            if(uname === null){
+                socket.emit('set_username', {'user': document.getElementById('ign').value});
+            }        
         });
 
-        socket.on('urResponse', data => {
-            if(data == 0){
-                //name taken
-                alert("Somebody else has this username. Enter a different username");
+        createroom.addEventListener('submit', event => {
+            /*CREATE ROOM*/
+            event.preventDefault();
+            if(uname === null){
+                alert("Username must be set");
                 return;
             }
-            document.getElementById("usernameDisplay").innerText = uname;
-            document.getElementById("chatroomDisplay").innerText = rname;
+            socket.emit('create_chatroom', {'name': uname, 'room': document.getElementById('create_room').value});      
+        });
+
+        joinroom.addEventListener('submit', event => {
+            event.preventDefault();
+            if(uname === null){
+                alert("Username must be set");
+                return;
+            }
+            socket.emit('join_chatroom', {'name': uname, 'room': document.getElementById('join_room').value});
+        });
+
+        refreshroom.addEventListener("click", () => {
+            socket.emit("refreshList", document.getElementById('chatroomDisplay').innerText);
         });
 
         chat.addEventListener('submit', event => {
-            /*
-                When a user sends a message, the server needs it
-            */
+            /*SEND MSG*/
             event.preventDefault()
             if(nonEmpty() === 0){
                 return 0;
@@ -90,6 +97,45 @@
             var msg = input.value;
             socket.emit('sendMsg', {'room':rname, 'uname':uname, 'message':msg});
             input.value = '';
+        });
+
+        socket.on('refresh_room_list', roomList => {
+            /*REFRESH ROOM LIST*/
+            chatroomList.innerHTML = "";
+            for(var singleRoom in roomList){
+                chatroomList.innerHTML += `<li>${singleRoom}</li>`;
+            };
+        });
+
+        socket.on('set_username_response', data => {
+            if(data == 0){
+                alert("Somebody else has this username. Enter a different username");
+                return;
+            }
+            // successful name and/or room change
+            uname = data;
+            document.getElementById("usernameDisplay").innerText = data;
+            username.remove(); //prevent user from resetting username
+        });
+
+        socket.on('create_chatroom_response', data => {
+            if(data == 0){
+                alert("This chatroom already exists.");
+                return;
+            }else{
+                document.getElementById('create_room').value = '';
+                document.getElementById('chatroomDisplay').innerText = data;
+            }
+        });
+
+        socket.on('join_chatroom_response', data => {
+            if(data == 0){
+                alert("This chatroom does not exist.");
+                return;
+            }else{
+                document.getElementById('join_room').value = '';
+                document.getElementById('chatroomDisplay').innerText = data;
+            }
         });
 
         socket.on('chat', contents => {
