@@ -99,6 +99,16 @@
             input.value = '';
         });
 
+        socket.on('userlist_update', users => {
+            userList.innerHTML = '';
+            var allUsers = JSON.parse(users)
+            for(var user in allUsers){
+                if(allUsers[user].hasOwnProperty('room') && rname != null && allUsers[user].room.toLowerCase() === rname.toLowerCase()){
+                    userList.innerHTML += `<li>${allUsers[user].name}</li>`;
+                }
+            }
+        });
+
         socket.on('refresh_room_list', roomList => {
             /*REFRESH ROOM LIST*/
             chatroomList.innerHTML = "";
@@ -125,6 +135,7 @@
             }else{
                 document.getElementById('create_room').value = '';
                 document.getElementById('chatroomDisplay').innerText = data;
+                rname = data;
             }
         });
 
@@ -135,6 +146,7 @@
             }else{
                 document.getElementById('join_room').value = '';
                 document.getElementById('chatroomDisplay').innerText = data;
+                rname = data;
             }
         });
 

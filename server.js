@@ -46,9 +46,11 @@ io.on('connection', (socket) => {
             rooms[newRoom] = 1; 
             socket.emit('create_chatroom_response', data.room);
             console.log(users);
+
+            io.sockets.emit('userlist_update', JSON.stringify(users));
         }
         // in any case, send the rooms list back
-        socket.emit('refresh_room_list', rooms);
+        io.sockets.emit('refresh_room_list', rooms);
     });
 
     socket.on('join_chatroom', (data) => {
@@ -61,8 +63,9 @@ io.on('connection', (socket) => {
             users[username] = data;
             socket.emit('join_chatroom_response', data.room);
             console.log(users);
+            io.sockets.emit('userlist_update', JSON.stringify(users));
         }
-        socket.emit('refresh_room_list', rooms);
+        io.sockets.emit('refresh_room_list', rooms);
     });
 });
 
