@@ -15,14 +15,13 @@ app.get('/', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-    console.log('somebody connected');
-
-    socket.on('sendMsg', (messageObject) => {
-        io.sockets.emit('chat', messageObject);
+    socket.on('send_msg', (messageObject) => {
+        io.sockets.emit('send_msg_response', messageObject);
     });
 
     socket.on('set_username', (data) => {
         var newUser = data.user.toLowerCase();
+        socket.username = newUser;
         if(users[newUser] !== undefined){
             socket.emit('set_username_response', 0);
         }else{
@@ -30,6 +29,14 @@ io.on('connection', (socket) => {
             socket.emit('set_username_response', data.user);
             console.log(users);
         } 
+    });
+
+    socket.on('delete_room', data => {
+        var roomname = data.room.toLowerCase();
+        console.log(rooms);
+        delete rooms[roomname];
+        console.log(rooms);
+        io.sockets.emit('delete_room_response', {"deleter": data.name, "room": roomname});
     });
     
     socket.on("refreshList", data => {
@@ -67,9 +74,13 @@ io.on('connection', (socket) => {
         }
         io.sockets.emit('refresh_room_list', rooms);
     });
+
+    socket.on('disconnect', () => {
+        console.log(`${socket.username} left`);
+        delete users[socket.username.toLowerCase()];
+        console.log(users);
+    });
 });
-
-
 
 server.listen(port, () => {
     console.log("Listening on port 8080");
