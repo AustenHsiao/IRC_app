@@ -87,7 +87,7 @@
             document.getElementById('chatroomDisplay').innerText = "";
             msgdisplay.innerText = "";
             socket.emit("leave_room", uname);
-            socket.emit("refreshList", document.getElementById('chatroomDisplay').innerText);
+            socket.emit("refreshList");
             userList.innerHTML = "";
         });
         
@@ -111,7 +111,7 @@
         });
 
         refreshroom.addEventListener("click", () => {
-            socket.emit("refreshList", document.getElementById('chatroomDisplay').innerText);
+            socket.emit("refreshList");
         });
 
         chat.addEventListener('submit', event => {
@@ -132,7 +132,7 @@
                 rname = null;
                 document.getElementById('chatroomDisplay').innerText = "";
                 alert(`${data.deleter} has deleted the room`);
-                socket.emit("refreshList", document.getElementById('chatroomDisplay').innerText);
+                socket.emit("refreshList");
                 userList.innerHTML = "";
             }
         });

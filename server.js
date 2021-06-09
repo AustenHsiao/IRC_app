@@ -55,7 +55,7 @@ io.on('connection', (socket) => {
         io.sockets.emit('userlist_update', JSON.stringify(users)); 
     });
     
-    socket.on("refreshList", data => {
+    socket.on("refreshList", () => {
         socket.emit('refresh_room_list', rooms);
     });
 
