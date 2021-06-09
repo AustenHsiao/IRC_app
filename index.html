@@ -86,6 +86,7 @@
             rname = null;
             document.getElementById('chatroomDisplay').innerText = "";
             msgdisplay.innerText = "";
+            socket.emit("leave_room", uname);
             socket.emit("refreshList", document.getElementById('chatroomDisplay').innerText);
             userList.innerHTML = "";
         });

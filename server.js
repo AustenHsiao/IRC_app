@@ -33,10 +33,26 @@ io.on('connection', (socket) => {
 
     socket.on('delete_room', data => {
         var roomname = data.room.toLowerCase();
-        console.log(rooms);
+        //console.log(rooms);
         delete rooms[roomname];
-        console.log(rooms);
+        //console.log(rooms);
+        //console.log(users);
+        for (const [key, value] of Object.entries(users)) {
+            if(value.room === roomname){
+                delete users[key].room
+            }
+        }
+        console.log(users)
         io.sockets.emit('delete_room_response', {"deleter": data.name, "room": roomname});
+    });
+
+    socket.on('leave_room', data => {
+        var username = data.toLowerCase();
+        try{
+            delete users[username].room;
+        }
+        catch{}
+        io.sockets.emit('userlist_update', JSON.stringify(users)); 
     });
     
     socket.on("refreshList", data => {
@@ -77,7 +93,10 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
         console.log(`${socket.username} left`);
-        delete users[socket.username.toLowerCase()];
+        try{
+            delete users[socket.username.toLowerCase()];
+        }catch{}
+
         console.log(users);
     });
 });
